@@ -42,7 +42,7 @@ List::List(const List& _List)
         delete &_List; 
 }
 
-List::~List() // Fertig
+List::~List()
 {
     /*
     TODO:
@@ -62,16 +62,18 @@ List::~List() // Fertig
         head_tail->next->prev = head_tail;
     }
 
+    // Somit ist die Komplette liste inkl. head_tail gelöscht. Allokierter Speicher wieder freigegeben.
+    delete head_tail;
+
 
 }
 
-void List::insertFront(int value)  //Fertig 
+void List::insertFront(int value)
 {
 
     /*
-    TODO:
-    Einfuegen eines neuen Knotens am Anfang der Liste
-	Einen neuen Knoten mit dem Wert value wird am Anfang der Liste einfügen
+    TODO: Einfuegen eines neuen Knotens am Anfang der Liste
+          einen neuen Knoten mit dem Wert value wird am Anfang der Liste einfügen
     */
 
     // (1) Initialisieren des neuen Knotens.
@@ -79,16 +81,12 @@ void List::insertFront(int value)  //Fertig
     new_Node->next = nullptr;
     new_Node->prev = nullptr;
 
-    // (2) Knoten an die Liste anhängen 
-    new_Node->next = head_tail->next;
+    // (2) Knoten in die Liste einbinden
+    new_Node->next = head_tail;
     new_Node->prev = head_tail;
 
     head_tail->next = new_Node;
-    new_Node->next->prev = new_Node;
-    
-    
-
-    // Überlegung : Müssen wir zwei Fälle betrachen - (1) Leere Liste (2) Vorhandene Liste
+    head_tail->prev = new_Node;
 }
 
 void List::insertFront(List& _List)
@@ -113,6 +111,11 @@ void List::insertFront(List& _List)
 	Diese Knoten (koplette Kette) werden an den Anfang der Liste (this) übertragen ohne sie zu kopieren!
 	Die Liste _List ist danach leer, aber vorhanden.
     */
+
+     // Aktualisierung der Listen größe;
+     this->list_size += _List.list_size; 
+
+     //Verkettung der zwei Listen
     _List.head_tail->prev->next = this->head_tail->next;
     this->head_tail->next->prev = _List.head_tail->prev;
     _List.head_tail->next = this->head_tail->next;
@@ -145,7 +148,7 @@ void List::insertBack(int value)
     head_tail->prev->next = new_Node;
     head_tail->prev = new_Node;
 
-
+    list_size++;
 
 }
 
@@ -172,6 +175,11 @@ void List::insertBack(List& _List)
     */
 
    _List.head_tail->next->prev = head_tail->prev;
+    head_tail->prev->next = _List.head_tail->next;
+
+    head_tail->prev = _List.head_tail->prev->next;
+    _List.head_tail->prev->next = head_tail;
+
 
 }
 
@@ -195,6 +203,16 @@ bool List::getFront(int& value)
 	Der Wert des vorderen Knotens wird rückgegeben und der Knoten gelöscht.
 	Die Methode del(value) darf nicht zum löschen benutzt werden.
     */
+
+    if(head_tail->next->value == value)
+    {
+        return true;    
+    }
+    else
+    {
+         return false;
+    }
+
 }
 
 bool List::getBack(int& value)
@@ -221,77 +239,115 @@ bool List::getBack(int& value)
 
 bool List::del(int value)
 {
-    //ToDo
-/*  
-    Loeschen eines gegebenen Knotens
-	im Fehlerfall wird false zurückgegeben
-*/
+    
+    
+    // TODO:   Loeschen eines gegebenen Knotens im Fehlerfall wird false zurückgegeben
 
-/*
-    gleiches Objekt -> keine Aktion
-*/
+    /*
+        gleiches Objekt -> keine Aktion
+    */
 	if (!list_size) return false;
 
-/*
-	Löschen des Knotens mit dem Wert value 
-*/
+    Node *tmp = head_tail->next;
 
+    bool found = false;
 
+    while(tmp->next != head_tail)
+    {
+        if(tmp->value == value)
+        {
+            tmp->prev->next = tmp->next;
+            tmp->next->prev = tmp->prev;
+
+            delete tmp;
+            list_size--;
+            found = true;
+        }
+        tmp = tmp->next;
+    }
+    if(found == false)return false; // Keine übereinstimmung gefunden.
 }
 
 bool List::search(int value)
 {
-    //ToDo
-/*
-    suchen eines Knotens
-	nicht gefunden -> Rueckgabe: false
-*/
+    
+   // TODO : Suchen eines Knoten nicht gefunden -> Rueckgabe: false
 
-/*
-    leere Liste -> keine Aktion
-*/
-	if (!list_size) return false; 
+    /*
+        leere Liste -> keine Aktion
+    */
+    if (!list_size) return false; 
 
-/*
-	suchen ob ein Knoten mit dem Wert value existiert.
-*/
-
+    bool not_exist = true;
+    while(head_tail->next != head_tail){
+        if(head_tail->next->value == value)
+        {
+                not_exist = false;
+                return true;
+        }
+      head_tail->next = head_tail->next->next;
+    }
+    if(not_exist == true) return false;
 
 }
 
 bool List::swap(int value1, int value2)
 {
-    //ToDo
-/*  
-    Vertauschen von zwei Knoten
-	Dabei werden die Zeiger der Knoten und deren Nachbarn veraendert.
-	im Fehlerfall wird false zurueckgegeben
-*/
+    
+    /* 
+    TODO: Vertauschen von zwei Knoten
+        - Dabei werden die Zeiger der Knoten und deren Nachbarn veraendert
+            und im Fehlerfall wird false zurueckgegeben
+    */
 
-/*
-    Wenn Liste Leer oder weniger als 2 Knoten besitzt -> Keine Aktion
-*/
+    /*
+        Wenn Liste Leer oder weniger als 2 Knoten besitzt -> Keine Aktion
+    */
 	if (list_size < 2) return false; 
 
-/*
-	Vertauschen von zwei Knoten mit dem Wert value1 und dem Wert value2.
-	Es duerfen nicht nur einfach die Werte in den Knoten getauscht werden!
-	Die Knoten sind in der Kette umzuhaengen.
-*/
+    /*
+        Vertauschen von zwei Knoten mit dem Wert value1 und dem Wert value2.
+        Es duerfen nicht nur einfach die Werte in den Knoten getauscht werden!
+        Die Knoten sind in der Kette umzuhaengen.
+    */
+    Node *tmp = head_tail->next;
+    Node *tmp_value_1 = new Node;
+    Node *tmp_value_2 = new Node;
+
+    while(tmp->next != head_tail)
+    {
+        if(tmp->value == value1)
+        {
+            tmp_value_1 = tmp;
+        }
+        else if(tmp->value == value2){
+            tmp_value_2 = tmp;
+        }
+        tmp = tmp->next;
+    }
+
+    // Tauschen der Knoten
+    tmp_value_1->next = tmp_value_2 -> next;
+    tmp_value_2->next->prev = tmp_value_1;
+
+    tmp_value_2->next
+   
 
 	return true;
 }
 
 int List::size(void)
 {
-    //ToDo
-/*  
-    Rueckgabe der Anzahl der Knoten in der Liste mit O(1)
-    d.h. die Liste darf NICHT traversiert werden um die Größe zu bestimmen.
+   
+    /*  
+        TODO:
+        Rueckgabe der Anzahl der Knoten in der Liste mit O(1)
+        d.h. die Liste darf NICHT traversiert werden um die Größe zu bestimmen.
 
-	Anzahl der Knoten in der Liste zurückgeben.
-    Hier richtiges Ergebnis zurückgeben
-*/
+        Anzahl der Knoten in der Liste zurückgeben.
+        Hier richtiges Ergebnis zurückgeben
+    */
+   if(list_size > 0) return list_size;
 	return 0;	
 }
 
